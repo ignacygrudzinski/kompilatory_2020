@@ -1,4 +1,5 @@
 import ply.lex as lex
+import math
 
 reserved = {
     #CONTROL FLOW
@@ -29,8 +30,13 @@ tokens = list(reserved.values()) + [
     #SEPARATORS
     'SEMICOLON', 'COMMA',
     #OTHER
-    'NAME', 'UNKNOWN'
+    'FUNCTION', 'NAME', 'UNKNOWN', 
 ]
+
+def t_FUNCTION(t):
+    r'sin|cos'
+    t.value = (t.value, getattr(math, t.value))
+    return t
 
 def t_NAME(t):
     r'[a-zA-Z_][a-zA-Z0-9_]*'
@@ -41,6 +47,8 @@ def t_STRING(t):
     r'\"(.*?)\"'
     t.value = t.value[1:-1]
     return t
+
+
 
 #ARITHMETIC
 t_PLUS  = r'\+'
