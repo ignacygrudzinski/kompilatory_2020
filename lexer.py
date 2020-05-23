@@ -96,6 +96,7 @@ def make_lexer(inp=None):
 
 ###### TESTS ######
 
+lexer = make_lexer()
 
 if __name__ == '__main__':
 
@@ -109,7 +110,6 @@ if __name__ == '__main__':
     def test_token(lexer, input, expected_type):
         lexer.input(input)
         return next(lexer).type == expected_type
-    
-    lexer = make_lexer()
+       
     for key in tests:
         print(test_token(lexer, key, tests[key]))
