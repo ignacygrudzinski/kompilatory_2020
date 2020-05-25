@@ -38,7 +38,7 @@ def test(input, output):
         run_from('python_cmd_default', input_file, output_file)
 
     # get output
-    with open(p("output")) as f:
+    with open(output_file) as f:
         result = f.read()[:-1]
         
         if(result == output):

@@ -1,5 +1,15 @@
 from lexer import *
 
+
+precedence = (
+    ("left", 'PLUS', 'MINUS'),
+    # ("left", t_TIMES, t_DIV),
+    # ("right", t_POW),
+    # ("right", t_MINUS),
+    # ("right", t_FUNCTION),
+)
+
+
 def p_wrapper(p):
     'wrapper : expr'
     print(p[1])
@@ -9,11 +19,25 @@ def p_expr_function(p):
     p[0] = p[1][1](p[2])
 
 def p_expr_binop(p):
-    '''expr : expr POW expr'''
-    # for pip in p:
-    #     print(pip)
+    '''expr : expr POW expr
+            | expr PLUS expr
+            | expr MINUS expr
+            | expr TIMES expr
+            | expr DIV expr'''
     if p[2] == '^':
         p[0] = p[1]**p[3]
+    elif p[2] == '+':
+        p[0] = p[1]+p[3]
+    elif p[2] == '-':
+        p[0] = p[1]-p[3]    
+    elif p[2] == '*':
+        p[0] = p[1]*p[3]
+    elif p[2] == '/':
+        p[0] = p[1]/p[3]
+
+def p_expression_uminus(p):
+    "expr : '-' expr"
+    p[0] = -p[2]
 
 def p_expr_name(p):
     'expr : NAME'
@@ -32,6 +56,9 @@ def p_number(p):
     '''number : INT
               | FLOAT'''
     p[0] = p[1]
+
+
+
 
 def p_error(p):
     if p:
