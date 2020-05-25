@@ -2,6 +2,9 @@
 ply/
 parser.out
 parsetab.py
+tests/input
+tests/output
+tests/python_cmd
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
