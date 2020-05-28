@@ -30,12 +30,17 @@ def p_instruction(p):
     '''instruction : instruction SEMICOLON'''
     p[0] = [p[1]]
 
+def p_instruction_if_else(p):
+    '''instruction : IF OPAREN expr CPAREN block ELSE block'''
+    p[0] = ['IF', (p[3],p[5],p[7])]
+
 def p_instruction_if(p):
-    '''instruction : IF OPAREN expr CPAREN block'''
-    if p[3]:
-        p[0] = p[5]
-    else:
-        p[0] = []
+    '''instruction : IF OPAREN expr CPAREN block '''
+    p[0] = ['IF', (p[3], p[5], None)]
+
+def p_instruction_while(p):
+    '''instruction : WHILE OPAREN expr CPAREN block'''
+    p[0] = ['WHILE', (p[3], p[5])]
 
 def p_expr_instruction(p):
     '''instruction : expr'''
