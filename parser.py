@@ -2,11 +2,11 @@ from lexer import *
 
 
 precedence = (
+    ("left", 'EQ', 'NEQ'),
+    ("left", 'GT', 'LT'),
     ("left", 'PLUS', 'MINUS'),
-    # ("left", t_TIMES, t_DIV),
-    # ("right", t_POW),
-    # ("right", t_MINUS),
-    # ("right", t_FUNCTION),
+    ("left", 'TIMES', 'DIV', 'MOD'),
+    ("right", 'POW'),
 )
 
 
