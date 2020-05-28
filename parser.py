@@ -11,8 +11,31 @@ precedence = (
 
 
 def p_wrapper(p):
-    'wrapper : expr'
+    'wrapper : instruction'
     print(p[1])
+    
+# instruction types:
+# [x] expression
+# [ ] declaration
+# [ ] assignment
+# [ ] return, break, continue
+# [ ] if, else, while, for
+
+def p_instructions(p):
+    '''instruction : instruction SEMICOLON instruction'''
+    p[0] = p[1] + p[3]
+
+def p_instruction(p):
+    '''instruction : instruction SEMICOLON'''
+    p[0] = [p[1]]
+
+def p_expr_instruction(p):
+    '''instruction : expr'''
+    p[0] = [p[1]]
+
+def p_block(p):
+    '''block : OBLOCK instruction CBLOCK'''
+
 
 def p_expr_function(p):
     '''expr : FUNCTION expr'''
