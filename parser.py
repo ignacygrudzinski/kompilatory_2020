@@ -38,15 +38,20 @@ def p_block(p):
 
 
 def p_expr_function(p):
-    '''expr : FUNCTION expr'''
-    p[0] = p[1][1](p[2])
+    '''expr : FUNCTION OPAREN expr CPAREN'''
+    p[0] = p[1][1](p[3])
 
 def p_expr_binop(p):
     '''expr : expr POW expr
             | expr PLUS expr
             | expr MINUS expr
             | expr TIMES expr
-            | expr DIV expr'''
+            | expr DIV expr
+            | expr EQ expr
+            | expr NEQ expr
+            | expr GT expr
+            | expr LT expr'''
+    #TODO expand boolean types
     if p[2] == '^':
         p[0] = p[1]**p[3]
     elif p[2] == '+':
@@ -57,9 +62,17 @@ def p_expr_binop(p):
         p[0] = p[1]*p[3]
     elif p[2] == '/':
         p[0] = p[1]/p[3]
+    elif p[2] == '==':
+        p[0] = p[1] == p[3]
+    elif p[2] == '!=':
+        p[0] = p[1] != p[3]
+    elif p[2] == '<':
+        p[0] = p[1] < p[3]
+    elif p[2] == '>':
+        p[0] = p[1] > p[3]
 
 def p_expression_uminus(p):
-    "expr : '-' expr"
+    "expr : MINUS expr"
     p[0] = -p[2]
 
 def p_expr_name(p):
