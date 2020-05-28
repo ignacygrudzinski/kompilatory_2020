@@ -11,7 +11,8 @@ precedence = (
 
 
 def p_wrapper(p):
-    'wrapper : instruction'
+    '''wrapper : instruction
+             | block'''
     print(p[1])
 
 # TODO instruction types:
@@ -35,6 +36,7 @@ def p_expr_instruction(p):
 
 def p_block(p):
     '''block : OBLOCK instruction CBLOCK'''
+    p[0] = p[2]
 
 
 def p_expr_function(p):
@@ -101,6 +103,7 @@ def p_error(p):
         print("Syntax error at '%s'" % p.value)
     else:
         print("Syntax error at EOF")
+    
 
 import ply.yacc as yacc
 parser = yacc.yacc()
