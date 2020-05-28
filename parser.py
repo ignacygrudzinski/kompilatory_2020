@@ -13,8 +13,8 @@ precedence = (
 def p_wrapper(p):
     'wrapper : instruction'
     print(p[1])
-    
-# instruction types:
+
+# TODO instruction types:
 # [x] expression
 # [ ] declaration
 # [ ] assignment
