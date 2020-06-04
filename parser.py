@@ -106,62 +106,84 @@ def p_block(p):
     p[0] = p[2]
 
 
-def p_expr_function(p):
-    '''expr : FUNCTION OPAREN expr CPAREN'''
-    p[0] = p[1][1](p[3])
+# def p_expr_function(p):
+#     '''expr : FUNCTION OPAREN expr CPAREN'''
+#     p[0] = p[1][1](p[3])
 
+
+#[arg1, arg2, ...]                               #importante!
+def p_arglist_call1(p):
+    '''arglist_call : expression COMMA arglist_call'''
+    p[0] = [p[1]] + p[3]
+
+def p_arglist_call(p):
+    '''arglist_call : expression'''
+    p[0] = [p[1]]
+    
+# (CALL, (NAME, [arg2, arg2...]))                #importante!
+def p_expr_call(p):
+    '''expr : NAME OPAREN arglist_call CPAREN
+            | NAME OPAREN CPAREN'''
+    arg_list = p[3] if p[3] else []
+    p[0] = ('CALL', (p[1], arg_list))
+    
+#('BINOP, (operation, arg1, arg2))
 def p_expr_binop(p):
-    '''expr : expr POW expr
-            | expr PLUS expr
-            | expr MINUS expr
-            | expr TIMES expr
-            | expr DIV expr
-            | expr EQ expr
-            | expr NEQ expr
-            | expr GT expr
-            | expr LT expr'''
+    '''expr : expr binop expr'''
+    p[0] = ('BINOP', (p[2], p[1], p[3]))
+
+    #TODO move below to interpreter
     #TODO expand to boolean types
-    #TODO redefine everything to interpreter-digestible form (long list of stuff)
-    if p[2] == '^':
-        p[0] = p[1]**p[3]
-    elif p[2] == '+':
-        p[0] = p[1]+p[3]
-    elif p[2] == '-':
-        p[0] = p[1]-p[3]    
-    elif p[2] == '*':
-        p[0] = p[1]*p[3]
-    elif p[2] == '/':
-        p[0] = p[1]/p[3]
-    elif p[2] == '==':
-        p[0] = p[1] == p[3]
-    elif p[2] == '!=':
-        p[0] = p[1] != p[3]
-    elif p[2] == '<':
-        p[0] = p[1] < p[3]
-    elif p[2] == '>':
-        p[0] = p[1] > p[3]
+    # if p[2] == '^':
+    #     p[0] = p[1]**p[3]
+    # elif p[2] == '+':
+    #     p[0] = p[1]+p[3]
+    # elif p[2] == '-':
+    #     p[0] = p[1]-p[3]    
+    # elif p[2] == '*':
+    #     p[0] = p[1]*p[3]
+    # elif p[2] == '/':
+    #     p[0] = p[1]/p[3]
+    # elif p[2] == '==':
+    #     p[0] = p[1] == p[3]
+    # elif p[2] == '!=':
+    #     p[0] = p[1] != p[3]
+    # elif p[2] == '<':
+    #     p[0] = p[1] < p[3]
+    # elif p[2] == '>':
+    #     p[0] = p[1] > p[3]
+
+def p_binop(p):
+    '''binop : POW
+             | PLUS
+             | MINUS
+             | TIMES
+             | DIV
+             | EQ
+             | NEQ
+             | GT
+             | LT'''
+    p[0] = p[1]
 
 def p_expression_uminus(p):
     "expr : MINUS expr"
-    p[0] = -p[2]
+    p[0] = ('UMINUS', p[2])
 
 def p_expr_name(p):
     'expr : NAME'
-    p[0] = p[1]
+    p[0] = ('NAME', p[1])
 
 def p_expr_string(p):
     'expr : STRING'
-    p[0] = p[1]
+    p[0] = ('STRING', p[1])
 
-def p_expr_number(p):
-    'expr : number'
-    p[0] = p[1]
+def p_expr_int(p):
+    'expr : INT'
+    p[0] = ('INT', p[1])
 
-def p_number(p):
-    '''number : INT
-              | FLOAT'''
-    p[0] = p[1]
-
+def p_expr_float(p):
+    'expr : FLOAT'
+    p[0] = ('FLOAT', p[1])
 
 def p_error(p):
     if p:
