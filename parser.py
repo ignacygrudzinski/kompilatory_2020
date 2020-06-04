@@ -40,6 +40,7 @@ def p_instruction_if(p):
     '''instruction : IF OPAREN expr CPAREN block '''
     p[0] = ['IF', (p[3], p[5], None)]
 
+#TODO: introduce condition thing because for doesn't work as is (unless 5 is a valid stop condition (it's not))
 #[FOR, (i_declaration, condition, assignment, block)]
 def p_instruction_for(p):
     '''instruction : FOR OPAREN full_dec SEMICOLON expr SEMICOLON assignment CPAREN block'''
@@ -112,19 +113,18 @@ def p_block(p):
 
 
 #[arg1, arg2, ...]                               #importante!
-def p_arglist_call1(p):
-    '''arglist_call : expression COMMA arglist_call'''
-    p[0] = [p[1]] + p[3]
-
 def p_arglist_call(p):
-    '''arglist_call : expression'''
+    '''arglist_call : expr COMMA arglist_call
+                    | expr'''
     p[0] = [p[1]]
-    
+    if len(p) == 4:
+        p[0] += p[3]
+
 # (CALL, (NAME, [arg2, arg2...]))                #importante!
 def p_expr_call(p):
     '''expr : NAME OPAREN arglist_call CPAREN
             | NAME OPAREN CPAREN'''
-    arg_list = p[3] if p[3] else []
+    arg_list = p[3] if len(p) == 5 else []
     p[0] = ('CALL', (p[1], arg_list))
     
 #('BINOP, (operation, arg1, arg2))
