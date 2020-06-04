@@ -38,3 +38,8 @@ test("if(2>6){4+5}else{2+4}","['IF', (False, [9], [6])]")
 
 test("while(2<5){2*3}","['WHILE', (True, [6])]")
 
+test("int a", "[('DEC', ('int', 'a'))]")
+
+test("a = 5", "[('ASSIGN', ('a', 5))]")
+
+test("int a = 5", "[('DEC_FULL', (('DEC', ('int', 'a')), 5))]")
