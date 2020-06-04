@@ -6,6 +6,7 @@ precedence = (
     ("left", 'GT', 'LT'),
     ("left", 'PLUS', 'MINUS'),
     ("left", 'TIMES', 'DIV', 'MOD'),
+    ("left", 'SEMICOLON'),
     ("right", 'POW'),
 )
 
