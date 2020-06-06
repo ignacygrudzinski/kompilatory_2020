@@ -80,6 +80,17 @@ def evaluate(tokens, scope: Scope) -> Symbol:
         scope.update(name, assigned_symbol)
         return assigned_symbol
 
+    def eval_increment(expr: tuple) -> Symbol:
+        name, incremented = expr
+        incremented_symbol = evaluate(incremented, scope)
+        if not scope.contains(name):
+            raise Exception(f"{name} is not defined!")
+        incremented_to = scope.get(name)
+        type_check(incremented_symbol, incremented_to.typ)
+        scope.update(name, Symbol(incremented_to.typ, incremented_to.value + incremented_symbol.value))
+        return incremented_symbol
+
+
     def eval_ref(expr) -> Symbol:
         if not scope.contains(expr):
             raise Exception(f"{expr} is not defined in current scope")
@@ -100,6 +111,7 @@ def evaluate(tokens, scope: Scope) -> Symbol:
         "BOOL": eval_bool,
         "DEC": eval_dec,
         "ASSIGN": eval_assign,
+        "INCREMENT": eval_increment,
         "REF": eval_ref,
         "UMINUS": eval_uminus,
         # "BINOP": eval_binop,
@@ -120,4 +132,23 @@ def evaluate(tokens, scope: Scope) -> Symbol:
 command = \
 [('DEC', ('i', 'int', ('UMINUS', ('INT', 5)))), ('REF', 'i')]
 
-print(evaluate(command, Scope()).value)
+def test(expected, command):
+    result = evaluate(command, Scope()).value
+    if result == expected:
+        print('OK')
+    else:
+        print("*****ERROR*******\n"+str(command)+'\n*********WAS**********\n'+str(result) + "\n**********SHOULD*BE*********\n" +str(expected) + "\n************************\n")
+
+
+####################
+# TESTS
+####################
+
+
+test(-5, [('DEC', ('i', 'int', ('UMINUS', ('INT', 5)))), ('REF', 'i')])
+
+# int a = 1; a = 3; a;
+test(3, [('DEC', ('a', 'int', ('INT', 1))), ('ASSIGN', ('a', ('INT', 3))), ('REF', 'a')])
+
+# int a = 1; a += 3; a;
+test(4, [('DEC', ('a', 'int', ('INT', 1))), ('INCREMENT', ('a', ('INT', 3))), ('REF', 'a')])
