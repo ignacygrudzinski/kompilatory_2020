@@ -404,8 +404,12 @@ test(9, [('DEC', ('x', 'int', ('INT', 5))),
 
 # int i = 10; while(i>5){i=i-1}; i
 test(5, [('DEC', ('i', 'int', ('INT', 10))), (
-'WHILE', (('REL', (('REF', 'i'), '>', ('INT', 5))), [('ASSIGN', ('i', ('BINOP', (('REF', 'i'), '-', ('INT', 1)))))])),
+    'WHILE',
+    (('REL', (('REF', 'i'), '>', ('INT', 5))), [('ASSIGN', ('i', ('BINOP', (('REF', 'i'), '-', ('INT', 1)))))])),
          ('REF', 'i')])
 
 # string s = ""; for(int i = 5; i < 10; i = i+1){s = s + "a"}; s;
-test('aaaaa', [('DEC', ('s', 'string', ('STRING', ''))), ('FOR', (('DEC', ('i', 'int', ('INT', 5))), ('REL', (('REF', 'i'), '<', ('INT', 10))), ('ASSIGN', ('i', ('BINOP', (('REF', 'i'), '+', ('INT', 1))))), [('ASSIGN', ('s', ('BINOP', (('REF', 's'), '+', ('STRING', 'a')))))])), ('REF', 's')])
+test('aaaaa', [('DEC', ('s', 'string', ('STRING', ''))), ('FOR', (
+('DEC', ('i', 'int', ('INT', 5))), ('REL', (('REF', 'i'), '<', ('INT', 10))),
+('ASSIGN', ('i', ('BINOP', (('REF', 'i'), '+', ('INT', 1))))),
+[('ASSIGN', ('s', ('BINOP', (('REF', 's'), '+', ('STRING', 'a')))))])), ('REF', 's')])
