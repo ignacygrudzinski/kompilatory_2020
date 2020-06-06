@@ -45,24 +45,24 @@ Każdy test powinien składać się z pól: nazwa testu:, komentarz:, kod testu:
 Testy do poszczególnych kryteriów (do każdego kryterium może być wiele testów):
 
 ## 1. 
-### Potęgowanie
-
+**Potęgowanie**
+```
 test("3^3", "[27]")
-
 OK
+```
 
-### Funkcje specjalnych
-
+**Funkcje specjalne**
+```
 test("sin(0)","[0.0]")
-
 OK
+```
 
 
-### Działanie relacyjne 
-
+**Działanie relacyjne**
+```
 test("5==5","[True]")
-
 OK
+```
  
  
 2. 
