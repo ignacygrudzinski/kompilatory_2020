@@ -14,10 +14,10 @@ reserved = {
     'true' : 'TRUE',
     'false' : 'FALSE',
     #TYPES
-    'int' : 'INT',
-    'float' : 'FLOAT',
-    'bool' : 'BOOL',
-    'string' : 'STRING'
+    'int' : 'TYPE_SPEC',
+    'float' : 'TYPE_SPEC',
+    'bool' : 'TYPE_SPEC',
+    'string' : 'TYPE_SPEC'
 }
 
 tokens = list(reserved.values()) + [
@@ -30,7 +30,9 @@ tokens = list(reserved.values()) + [
     #SEPARATORS
     'SEMICOLON', 'COMMA',
     #OTHER
-    'FUNCTION', 'NAME', 'UNKNOWN', 
+    'NAME', 
+    #TYPES
+    'INT', 'FLOAT', 'STRING', 'BOOL',
 ]
 
 def t_FUNCTION(t):
@@ -47,7 +49,6 @@ def t_STRING(t):
     r'\"(.*?)\"'
     t.value = t.value[1:-1]
     return t
-
 
 
 #ARITHMETIC

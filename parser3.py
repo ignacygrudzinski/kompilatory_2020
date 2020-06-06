@@ -111,7 +111,7 @@ def p_func_args(p):
 
 def p_expression_uminus(p):
     '''expression : MINUS expression'''
-    p[0] = ('UMINUS', (p[1], p[2]))
+    p[0] = ('UMINUS', (p[2]))
 
 def p_expression_binop(p):
     '''expression : expression PLUS expression
