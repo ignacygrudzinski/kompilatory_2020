@@ -1,4 +1,4 @@
-from lexer import *
+from lexer2 import *
 
 
 precedence = (
