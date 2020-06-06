@@ -7,7 +7,7 @@ from parser3 import parse, make_parser
 class Symbol:
     def __init__(self, typ, value):
         self.typ = typ
-        self._value = value
+        self.value = value
 
 
 class Scope:
@@ -37,12 +37,26 @@ def type_check(symbol: Symbol, typ):
     if symbol.typ != typ:
         raise Exception(f"Expected {typ}, got {symbol.typ}")
 
+def number_check(symbol: Symbol):
+    if symbol.typ not in ['int', 'float']:
+        raise Exception(f"{Symbol.value} is not a number")
 
 def evaluate(tokens, scope: Scope) -> Symbol:
-
     ################################################
     # ################ evaluators ################ #
     ################################################
+
+    def eval_int(expr) -> Symbol:
+        return Symbol("int", expr)
+
+    def eval_float(expr) -> Symbol:
+        return Symbol("float", expr)
+
+    def eval_string(expr) -> Symbol:
+        return Symbol("string", expr)
+
+    def eval_bool(expr) -> Symbol:
+        return Symbol("bool", expr)
 
     def eval_dec(expr: tuple) -> Symbol:
         name, typ, assigned = expr
@@ -66,23 +80,35 @@ def evaluate(tokens, scope: Scope) -> Symbol:
         scope.update(name, assigned_symbol)
         return assigned_symbol
 
+    def eval_ref(expr) -> Symbol:
+        if not scope.contains(expr):
+            raise Exception(f"{expr} is not defined in current scope")
+        return scope.get(expr)
+
+    def eval_uminus(expr) -> Symbol:
+        symbol = evaluate(expr, scope)
+        number_check(symbol)
+        symbol.value = (-1 * symbol.value)
+        return symbol
+
+
 
     evaluators = {
+        "INT": eval_int,
+        "FLOAT": eval_float,
+        "STRING": eval_string,
+        "BOOL": eval_bool,
         "DEC": eval_dec,
         "ASSIGN": eval_assign,
-        "UMINUS": eval_uminus,
-        "BINOP": eval_binop,
-        "REL": eval_rel,
-        "CALL": eval_call,
         "REF": eval_ref,
-        "INT": eval_int,
-        "REAL": eval_real,
-        "BOOL": eval_bool,
-        "STRING": eval_string,
-        "IF": eval_if,
-        "WHILE": eval_while,
-        "FOR": eval_for,
-        "FUNC": eval_func,
+        "UMINUS": eval_uminus,
+        # "BINOP": eval_binop,
+        # "REL": eval_rel,
+        # "CALL": eval_call,
+        # "IF": eval_if,
+        # "WHILE": eval_while,
+        # "FOR": eval_for,
+        # "FUNC": eval_func,
     }
     results = []
     tokens = tokens if isinstance(tokens, list) else [tokens]
@@ -91,4 +117,7 @@ def evaluate(tokens, scope: Scope) -> Symbol:
     return results[-1]
 
 
-evaluate()
+command = \
+[('DEC', ('i', 'int', ('UMINUS', ('INT', 5)))), ('REF', 'i')]
+
+print(evaluate(command, Scope()).value)
