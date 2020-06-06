@@ -40,7 +40,12 @@ class Scope:
     def pop(self):
         self.names = self.stack.pop()
 
-
+    def pop_update(self):
+        new_names = self.names
+        self.names = self.stack.pop()
+        for name in new_names.keys():
+            if name in self.names.keys():
+                self.update(name, new_names[name])
 
 
 def type_assertion(symbol: Symbol, typ):
@@ -64,7 +69,6 @@ def try_convert(symbol: Symbol, typ: str) -> Symbol:
         return Symbol('float', float(symbol.value))
     if typ == 'string':
         return Symbol('string', str(symbol.value))
-
 
 
 def evaluate(tokens, scope: Scope) -> Symbol:
@@ -116,7 +120,6 @@ def evaluate(tokens, scope: Scope) -> Symbol:
         scope.update(name, Symbol(incremented_to.typ, incremented_to.value + incremented_symbol.value))
         return incremented_symbol
 
-
     def eval_ref(expr) -> Symbol:
         if not scope.contains(expr):
             raise Exception(f"{expr} is not defined in current scope")
@@ -129,7 +132,7 @@ def evaluate(tokens, scope: Scope) -> Symbol:
         return symbol
 
     def binop_str(lhs, op, rhs):
-        if op == 'PLUS':
+        if op == '+':
             return Symbol('string', str(lhs.value) + str(rhs.value))
         return None
 
@@ -210,7 +213,7 @@ def evaluate(tokens, scope: Scope) -> Symbol:
     def eval_func(expr: tuple) -> Symbol:
         ret_typ, name, arg_names, body = expr
 
-        def func(scope, *argv, name=name, body=body, arg_names = arg_names, ret_typ=ret_typ):
+        def func(scope, *argv, name=name, body=body, arg_names=arg_names, ret_typ=ret_typ):
             scope.push()
             if len(argv) != len(arg_names):
                 raise Exception(f"Function {name} expected {len(arg_names)} arguments, got {len(argv)}")
@@ -243,9 +246,69 @@ def evaluate(tokens, scope: Scope) -> Symbol:
         exprlist = [evaluate(exp, scope) for exp in exprlist]
         return func(scope, *exprlist)
 
-    def eval_if(expr) -> Symbol:
-        
+    def eval_if(expr: tuple):
+        scope.push()
+        cond, if_block, else_block = expr
+        cond = evaluate(cond, scope)
+        type_assertion(cond, 'bool')
 
+        result = None
+
+        if cond.value is True:
+            result = evaluate(if_block, scope)
+        elif else_block is not None:
+            result = evaluate(else_block, scope)
+        scope.pop_update()
+        return result
+
+    def eval_while(expr: tuple):
+        scope.push()
+        cond, block = expr
+        while True:
+            cond_symbol = evaluate(cond, scope)
+            type_assertion(cond_symbol, 'bool')
+            if cond_symbol.value:
+                should_break = evaluate(block, scope)
+                should_break = Symbol("none", None) if should_break is None else should_break
+                if should_break.typ == 'return':
+                    scope.pop_update()
+                    return should_break
+                if should_break.typ == 'break':
+                    break
+                if should_break.typ == 'continue':
+                    pass
+            else:
+                break
+        scope.pop_update()
+
+    def eval_for(expr: tuple):
+        pre, cond, post, block = expr
+        evaluate(pre, scope)
+
+        while True:
+            symbol = evaluate(cond, scope)
+            type_assertion(symbol, 'bool')
+
+            if symbol.value is True:
+                scope.push()
+
+                brk = evaluate(block, scope)
+                # If return, forward it to the function.
+                if brk.typ == 'return':
+                    scope.pop_update()
+                    return brk
+                # If break, just finish the loop.
+                if brk.typ == 'break':
+                    scope.pop_update()
+                    break
+                # It already stopped, so it can pass.
+                if brk.typ == 'continue':
+                    pass
+
+                scope.pop_update()
+                evaluate(post, scope)
+            else:
+                break
 
     evaluators = {
         "INT": eval_int,
@@ -264,9 +327,9 @@ def evaluate(tokens, scope: Scope) -> Symbol:
         "CONTINUE": eval_continue,
         "FUNC": eval_func,
         "CALL": eval_call,
-        # "IF": eval_if,
-        # "WHILE": eval_while,
-        # "FOR": eval_for,
+        "IF": eval_if,
+        "WHILE": eval_while,
+        "FOR": eval_for,
 
     }
     results = []
@@ -276,13 +339,14 @@ def evaluate(tokens, scope: Scope) -> Symbol:
     return results[-1]
 
 
-
 def test(expected, command):
     result = evaluate(command, Scope()).value
     if result == expected:
         print('OK')
     else:
-        print("*****ERROR*******\n"+str(command)+'\n*********WAS**********\n'+str(result) + "\n**********SHOULD*BE*********\n" +str(expected) + "\n************************\n")
+        print("*****ERROR*******\n" + str(command) + '\n*********WAS**********\n' + str(
+            result) + "\n**********SHOULD*BE*********\n" + str(expected) + "\n************************\n")
+
 
 def test_raises(expected, command):
     result = None
@@ -291,12 +355,13 @@ def test_raises(expected, command):
     except Exception as e:
         if str(e) == expected:
             print('OK')
-            return 
-        else:
-            print("*****ERROR*******\n"+str(command)+'\n*********WAS**********\n'+str(e) + "\n**********SHOULD*BE*********\n" +str(expected) + "\n************************\n")
             return
-    print("*****ERROR*******\n"+str(command)+'\n*********WAS**********\n'+str(result) + "\n**********SHOULD*BE*********\n" +str(expected) + "\n************************\n")
-        
+        else:
+            print("*****ERROR*******\n" + str(command) + '\n*********WAS**********\n' + str(
+                e) + "\n**********SHOULD*BE*********\n" + str(expected) + "\n************************\n")
+            return
+    print("*****ERROR*******\n" + str(command) + '\n*********WAS**********\n' + str(
+        result) + "\n**********SHOULD*BE*********\n" + str(expected) + "\n************************\n")
 
 
 ####################
@@ -324,8 +389,27 @@ test_raises('trala is not defined in current scope', [('DEC', ('a', 'int', ('REF
 # -a
 test_raises('a is not defined in current scope', [('UMINUS', ('REF', 'a'))])
 
-#int x(int g){return g^2};x(5)
-test(25, [('FUNC', ('int', 'x', [('int', 'g')], [('RETURN', ('BINOP', (('REF', 'g'), '^', ('INT', 2))))])), ('CALL', ('x', (('INT', 5),)))])
+# int x(int g){return g^2};x(5)
+test(25, [('FUNC', ('int', 'x', [('int', 'g')], [('RETURN', ('BINOP', (('REF', 'g'), '^', ('INT', 2))))])),
+          ('CALL', ('x', (('INT', 5),)))])
 
-#int x(int g){return g^2};int y(int h){return x(h)};y(5)
-test(25, [('FUNC', ('int', 'x', [('int', 'g')], [('RETURN', ('BINOP', (('REF', 'g'), '^', ('INT', 2))))])), ('FUNC', ('int', 'y', [('int', 'h')], [('RETURN', ('CALL', ('x', (('REF', 'h'),))))])), ('CALL', ('y', (('INT', 5),)))])
+# int x(int g){return g^2};int y(int h){return x(h)};y(5)
+test(25, [('FUNC', ('int', 'x', [('int', 'g')], [('RETURN', ('BINOP', (('REF', 'g'), '^', ('INT', 2))))])),
+          ('FUNC', ('int', 'y', [('int', 'h')], [('RETURN', ('CALL', ('x', (('REF', 'h'),))))])),
+          ('CALL', ('y', (('INT', 5),)))])
+
+# int x = 5; if(7>2){x=9};x
+test(9, [('DEC', ('x', 'int', ('INT', 5))),
+         ('IF', (('REL', (('INT', 7), '>', ('INT', 2))), [('ASSIGN', ('x', ('INT', 9)))], None)), ('REF', 'x')])
+
+# int i = 10; while(i>5){i=i-1}; i
+test(5, [('DEC', ('i', 'int', ('INT', 10))), (
+    'WHILE',
+    (('REL', (('REF', 'i'), '>', ('INT', 5))), [('ASSIGN', ('i', ('BINOP', (('REF', 'i'), '-', ('INT', 1)))))])),
+         ('REF', 'i')])
+
+# string s = ""; for(int i = 5; i < 10; i = i+1){s = s + "a"}; s;
+test('aaaaa', [('DEC', ('s', 'string', ('STRING', ''))), ('FOR', (
+('DEC', ('i', 'int', ('INT', 5))), ('REL', (('REF', 'i'), '<', ('INT', 10))),
+('ASSIGN', ('i', ('BINOP', (('REF', 'i'), '+', ('INT', 1))))),
+[('ASSIGN', ('s', ('BINOP', (('REF', 's'), '+', ('STRING', 'a')))))])), ('REF', 's')])
