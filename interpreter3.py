@@ -139,12 +139,26 @@ def test(expected, command):
     else:
         print("*****ERROR*******\n"+str(command)+'\n*********WAS**********\n'+str(result) + "\n**********SHOULD*BE*********\n" +str(expected) + "\n************************\n")
 
+def test_raises(expected, command):
+    result = None
+    try:
+        result = evaluate(command, Scope()).value
+    except Exception as e:
+        if str(e) == expected:
+            print('OK')
+            return 
+        else:
+            print("*****ERROR*******\n"+str(command)+'\n*********WAS**********\n'+str(e) + "\n**********SHOULD*BE*********\n" +str(expected) + "\n************************\n")
+            return
+    print("*****ERROR*******\n"+str(command)+'\n*********WAS**********\n'+str(result) + "\n**********SHOULD*BE*********\n" +str(expected) + "\n************************\n")
+        
+
 
 ####################
 # TESTS
 ####################
 
-
+# int i = -5; i
 test(-5, [('DEC', ('i', 'int', ('UMINUS', ('INT', 5)))), ('REF', 'i')])
 
 # int a = 1; a = 3; a;
@@ -152,3 +166,14 @@ test(3, [('DEC', ('a', 'int', ('INT', 1))), ('ASSIGN', ('a', ('INT', 3))), ('REF
 
 # int a = 1; a += 3; a;
 test(4, [('DEC', ('a', 'int', ('INT', 1))), ('INCREMENT', ('a', ('INT', 3))), ('REF', 'a')])
+
+# int a = 5; a = -a; a
+test(-5, [('DEC', ('a', 'int', ('INT', 5))), ('ASSIGN', ('a', ('UMINUS', ('REF', 'a')))), ('REF', 'a')])
+
+# int a = trala
+test_raises('trala is not defined in current scope', [('DEC', ('a', 'int', ('REF', 'trala')))])
+
+# -a
+test_raises('a is not defined in current scope', [('UMINUS', ('REF', 'a'))])
+
+
