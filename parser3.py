@@ -1,6 +1,6 @@
 import math
 import ply.yacc as yacc
-from lexer import *
+from lexer3 import *
 
 precedence = (
     ('left', 'EQ', 'NEQ'),
