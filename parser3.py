@@ -33,11 +33,11 @@ def p_instruction_expr_semi(p):
 
 def p_declaration_empty(p):
     '''decl_empty : TYPE_SPEC NAME'''
-    p[0] = ('DECL', (p[2], None, p[1]))
+    p[0] = ('DEC', (p[2], p[1], None))
 
 def p_declaration_2(p):
     '''decl_initial : TYPE_SPEC NAME ASSIGN expression'''
-    p[0] = ('DECL', (p[2], p[4], p[1]))
+    p[0] = ('DEC', (p[2], p[1], p[4]))
 
 def p_instruction_declaration(p):
     '''instruction : decl_empty
@@ -104,9 +104,9 @@ def p_func_args(p):
     '''instruction : TYPE_SPEC NAME OPAREN arglist CPAREN block'''
     p[0] = [('FUNC', (p[1], p[2], p[4], p[6]))]
 
-def p_expression_unop(p):
+def p_expression_uminus(p):
     '''expression : MINUS expression'''
-    p[0] = ('UNOP', (p[1], p[2]))
+    p[0] = ('UMINUS', (p[1], p[2]))
 
 def p_expression_binop(p):
     '''expression : expression PLUS expression
