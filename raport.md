@@ -44,7 +44,12 @@ Każdy test powinien składać się z pól: nazwa testu:, komentarz:, kod testu:
 
 Testy do poszczególnych kryteriów (do każdego kryterium może być wiele testów):
 
-## 1. 
+1. 
+**Komentarz do testów**
+`test(input, output)`, gdzie
+- input - input dla parsera
+- output - oczekiwany output wygenerowany przez parser
+
 **Potęgowanie**
 ```
 test("3^3", "[27]")
@@ -63,13 +68,40 @@ OK
 test("5==5","[True]")
 OK
 ```
- 
+
+**Zmiana znaku**
+```
+test("-5","[-5]")
+OK
+```
  
 2. 
 
+**Funkcje oddzielone średnikiem**
+```
+test("2+2; 4*4","[4, 16]")
+OK
+```
+
 3.
+**Kontynuowanie kolejnych funkcji w przypadku błędu**
+```
+test("ź; 2+2; 7*7", "Syntax error at 'ź'\n[4, 49]")
+OK
+```
 
 4.
 
 5.
+**instrukcje warunkowe i pętle**
+```
+test("if(2>6){4+5}else{2+4}","['IF', (False, [9], [6])]")
+OK
+```
+```
+test("while(2<5){2*3}","['WHILE', (True, [6])]")
+OK
+```
+
+
 
