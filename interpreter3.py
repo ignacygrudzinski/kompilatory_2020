@@ -186,6 +186,9 @@ def evaluate(tokens, scope: Scope) -> Symbol:
         exprlist = [evaluate(exp, scope) for exp in exprlist]
         return func(scope, *exprlist)
 
+    def eval_if(expr) -> Symbol:
+        
+
 
     evaluators = {
         "INT": eval_int,
@@ -243,6 +246,9 @@ def test_raises(expected, command):
 # TESTS
 ####################
 
+# 5
+test(5, [('INT', 5)])
+
 # int i = -5; i
 test(-5, [('DEC', ('i', 'int', ('UMINUS', ('INT', 5)))), ('REF', 'i')])
 
@@ -261,4 +267,5 @@ test_raises('trala is not defined in current scope', [('DEC', ('a', 'int', ('REF
 # -a
 test_raises('a is not defined in current scope', [('UMINUS', ('REF', 'a'))])
 
-
+# if(true){5}
+test(5, [('IF', (('BOOL', True), [('INT', 5)], None))])
