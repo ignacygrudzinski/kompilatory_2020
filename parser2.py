@@ -1,4 +1,4 @@
-from lexer import *
+from lexer2 import *
 
 
 precedence = (
@@ -41,18 +41,10 @@ def p_instruction_if(p):
     '''instruction : IF OPAREN expr CPAREN block '''
     p[0] = ['IF', (p[3], p[5], None)]
 
-<<<<<<< Updated upstream:parser2.py
 #[FOR, (i_declaration, condition, assignment, block)]
 def p_instruction_for(p):
     '''instruction : FOR OPAREN full_dec SEMICOLON expr SEMICOLON assignment CPAREN block'''
     p[0] = [('FOR', (p[3], p[5], p[7], p[9]))]
-=======
-#TODO: introduce condition thing because for doesn't work as is (unless 5 is a valid stop condition (it's not))
-# #[FOR, (i_declaration, condition, assignment, block)]
-# def p_instruction_for(p):
-#     '''instruction : FOR OPAREN full_dec SEMICOLON expr SEMICOLON assignment CPAREN block'''
-#     p[0] = [('FOR', (p[3], p[5], p[7], p[9]))]
->>>>>>> Stashed changes:parser.py
 
 #[WHILE, (condition, block)]
 def p_instruction_while(p):
@@ -64,40 +56,40 @@ def p_expr_instruction(p):
     '''instruction : expr'''
     p[0] = [p[1]]
 
-# #("RETURN", expr)
-# def p_return_instruction(p):
-#     '''instruction : RETURN expr'''
-#     p[0] = [("RETURN", p[2])]
+#("RETURN", expr)
+def p_return_instruction(p):
+    '''instruction : RETURN expr'''
+    p[0] = [("RETURN", p[2])]
 
-# #[("CONTINUE", None)]
-# def p_continue_instruction(p):
-#     '''instruction : CONTINUE'''
-#     p[0] = [("CONTINUE", None)]
+#[("CONTINUE", None)]
+def p_continue_instruction(p):
+    '''instruction : CONTINUE'''
+    p[0] = [("CONTINUE", None)]
 
-# #[("BREAK", None)]
-# def p_break_instruction(p):
-#     '''instruction : BREAK'''
-#     p[0] = [("BREAK", None)]
+#[("BREAK", None)]
+def p_break_instruction(p):
+    '''instruction : BREAK'''
+    p[0] = [("BREAK", None)]
 
-# #("DEC_FULL", (DEC, (TYPE, NAME)), expr))                   ###important for parser!
-# def p_full_declaration(p):
-#     '''full_dec : type_dec ASSIGN expr'''
-#     p[0] = ('DEC_FULL', (p[1], p[3]))
+#("DEC_FULL", (DEC, (TYPE, NAME)), expr))                   ###important for parser!
+def p_full_declaration(p):
+    '''full_dec : type_dec ASSIGN expr'''
+    p[0] = ('DEC_FULL', (p[1], p[3]))
 
-# #("DEC", (TYPE, NAME))
-# def p_type_declaration(p):
-#     '''type_dec : INT NAME
-#                 | FLOAT NAME
-#                 | STRING NAME
-#                 | BOOL NAME'''
-#     p[0] = ('DEC', (p[1], p[2]))
+#("DEC", (TYPE, NAME))
+def p_type_declaration(p):
+    '''type_dec : INT NAME
+                | FLOAT NAME
+                | STRING NAME
+                | BOOL NAME'''
+    p[0] = ('DEC', (p[1], p[2]))
 
 
 #[declaration]
-# def p_instruction_declaration(p):
-#     '''instruction : type_dec
-#                    | full_dec'''
-#     p[0] = [p[1]]
+def p_instruction_declaration(p):
+    '''instruction : type_dec
+                   | full_dec'''
+    p[0] = [p[1]]
 
 #("ASSIGN", (NAME, VALUE))
 def p_assignment(p):
@@ -119,7 +111,6 @@ def p_expr_function(p):
     '''expr : FUNCTION OPAREN expr CPAREN'''
     p[0] = p[1][1](p[3])
 
-<<<<<<< Updated upstream:parser2.py
 def p_expr_binop(p):
     '''expr : expr POW expr
             | expr PLUS expr
@@ -150,62 +141,6 @@ def p_expr_binop(p):
         p[0] = p[1] < p[3]
     elif p[2] == '>':
         p[0] = p[1] > p[3]
-=======
-
-# #[arg1, arg2, ...]                               #importante!
-# def p_arglist_call(p):
-#     '''arglist_call : expr COMMA arglist_call
-#                     | expr'''
-#     p[0] = [p[1]]
-#     if len(p) == 4:
-#         p[0] += p[3]
-
-# # (CALL, (NAME, [arg2, arg2...]))                #importante!
-# def p_expr_call(p):
-#     '''expr : NAME OPAREN arglist_call CPAREN
-#             | NAME OPAREN CPAREN'''
-#     arg_list = p[3] if len(p) == 5 else []
-#     p[0] = ('CALL', (p[1], arg_list))
-    
-#('BINOP, (operation, arg1, arg2))
-def p_expr_binop(p):
-    '''expr : expr binop expr'''
-    # p[0] = ('BINOP', (p[2], p[1], p[3]))
-
-    #TODO move below to interpreter
-    #TODO expand to boolean types
-    # if p[2] == '^':
-    #     p[0] = p[1]**p[3]
-    # elif p[2] == '+':
-    #     p[0] = p[1]+p[3]
-    # elif p[2] == '-':
-    #     p[0] = p[1]-p[3]    
-    # elif p[2] == '*':
-    #     p[0] = p[1]*p[3]
-    # elif p[2] == '/':
-    #     p[0] = p[1]/p[3]
-    # elif p[2] == '==':
-    #     p[0] = p[1] == p[3]
-    # elif p[2] == '!=':
-    #     p[0] = p[1] != p[3]
-    # elif p[2] == '<':
-    #     p[0] = p[1] < p[3]
-    # elif p[2] == '>':
-    #     p[0] = p[1] > p[3]
-
-def p_binop(p):
-    '''binop : POW
-             | PLUS
-             | MINUS
-             | TIMES
-             | DIV
-             | EQ
-             | NEQ
-             | GT
-             | LT
-             | MOD'''
-    p[0] = p[1]
->>>>>>> Stashed changes:parser.py
 
 def p_expression_uminus(p):
     "expr : MINUS expr"

@@ -368,6 +368,9 @@ def test_raises(expected, command):
 # TESTS
 ####################
 
+# 5
+test(5, [('INT', 5)])
+
 # int i = -5; i
 test(-5, [('DEC', ('i', 'int', ('UMINUS', ('INT', 5)))), ('REF', 'i')])
 
