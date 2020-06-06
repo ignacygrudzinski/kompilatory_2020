@@ -1,3 +1,4 @@
+import copy
 import math
 from typing import List
 
@@ -13,6 +14,7 @@ class Symbol:
 class Scope:
     def __init__(self):
         self.names = {}
+        self.stack = []
 
     def add(self, name: str, symbol: Symbol):
         if name in self.names:
@@ -32,6 +34,14 @@ class Scope:
     def get(self, name: str):
         return self.names[name]
 
+    def push(self):
+        self.stack.append(copy.deepcopy(self.names))
+
+    def pop(self):
+        self.names = self.stack.pop()
+
+
+
 
 def type_assertion(symbol: Symbol, typ):
     if symbol.typ != typ:
@@ -45,6 +55,16 @@ def number_assertion(symbol: Symbol):
 
 def number_check(symbol: Symbol) -> bool:
     return symbol.typ in ['int', 'float']
+
+
+def try_convert(symbol: Symbol, typ: str) -> Symbol:
+    if symbol.typ == typ:
+        return symbol
+    if symbol.typ == 'int' and typ == 'float':
+        return Symbol('float', float(symbol.value))
+    if typ == 'string':
+        return Symbol('string', str(symbol.value))
+
 
 
 def evaluate(tokens, scope: Scope) -> Symbol:
@@ -92,7 +112,7 @@ def evaluate(tokens, scope: Scope) -> Symbol:
         if not scope.contains(name):
             raise Exception(f"{name} is not defined!")
         incremented_to = scope.get(name)
-        type_check(incremented_symbol, incremented_to.typ)
+        type_assertion(incremented_symbol, incremented_to.typ)
         scope.update(name, Symbol(incremented_to.typ, incremented_to.value + incremented_symbol.value))
         return incremented_symbol
 
@@ -177,11 +197,48 @@ def evaluate(tokens, scope: Scope) -> Symbol:
             raise Exception(f"{op} not supported on arguments of types {lhs_symbol.typ}, {rhs_symbol.typ}")
         return Symbol('bool', result)
 
+    def eval_return(expr) -> Symbol:
+        symbol = evaluate(expr, scope)
+        return Symbol('return', symbol)
+
+    def eval_break(_) -> Symbol:
+        return Symbol('break', None)
+
+    def eval_continue(_) -> Symbol:
+        return Symbol('continue', None)
+
+    def eval_func(expr: tuple) -> Symbol:
+        ret_typ, name, arg_names, body = expr
+
+        def func(scope, *argv, name=name, body=body, arg_names = arg_names, ret_typ=ret_typ):
+            scope.push()
+            if len(argv) != len(arg_names):
+                raise Exception(f"Function {name} expected {len(arg_names)} arguments, got {len(argv)}")
+            for ((arg_ty, arg_name), symbol) in zip(arg_names, argv):
+                converted = try_convert(symbol, arg_ty)
+                type_assertion(converted, arg_ty)
+                scope.add(arg_name, converted)
+            result = evaluate(body, scope)
+            if result.typ == 'return':
+                result = result.value
+            elif result.typ in ['break', 'continue']:
+                raise Exception("Break or continue without corresponding loop.")
+
+            type_assertion(result, ret_typ)
+            scope.pop()
+            return result
+
+        scope.add(name, Symbol('func', func))
+        return Symbol('none', None)
+
     def eval_call(expr: tuple):
         name, exprlist = expr
         if not scope.contains(name):
             raise Exception(f"Function {name} is not defined")
         symbol = scope.get(name)
+        if symbol.typ != 'func':
+            raise Exception(f"{name} is not a function")
+
         func = symbol.value
         exprlist = [evaluate(exp, scope) for exp in exprlist]
         return func(scope, *exprlist)
@@ -199,11 +256,15 @@ def evaluate(tokens, scope: Scope) -> Symbol:
         "UMINUS": eval_uminus,
         "BINOP": eval_binop,
         "REL": eval_rel,
+        "RETURN": eval_return,
+        "BREAK": eval_break,
+        "CONTINUE": eval_continue,
+        "FUNC": eval_func,
         "CALL": eval_call,
         # "IF": eval_if,
         # "WHILE": eval_while,
         # "FOR": eval_for,
-        # "FUNC": eval_func,
+
     }
     results = []
     tokens = tokens if isinstance(tokens, list) else [tokens]
@@ -211,10 +272,6 @@ def evaluate(tokens, scope: Scope) -> Symbol:
         results.append(evaluators[expr_type](expr))
     return results[-1]
 
-
-command = \
-[('REL', (('INT', 6), '>', ('INT', 5)))]
-#     [('BINOP', (('BINOP', (('INT', 2), '*', ('INT', 2))), '+', ('INT', 2)))]
 
 
 def test(expected, command):
@@ -261,4 +318,8 @@ test_raises('trala is not defined in current scope', [('DEC', ('a', 'int', ('REF
 # -a
 test_raises('a is not defined in current scope', [('UMINUS', ('REF', 'a'))])
 
+#int x(int g){return g^2};x(5)
+test(25, [('FUNC', ('int', 'x', [('int', 'g')], [('RETURN', ('BINOP', (('REF', 'g'), '^', ('INT', 2))))])), ('CALL', ('x', (('INT', 5),)))])
 
+#int x(int g){return g^2};int y(int h){return x(h)};y(5)
+test(25, [('FUNC', ('int', 'x', [('int', 'g')], [('RETURN', ('BINOP', (('REF', 'g'), '^', ('INT', 2))))])), ('FUNC', ('int', 'y', [('int', 'h')], [('RETURN', ('CALL', ('x', (('REF', 'h'),))))])), ('CALL', ('y', (('INT', 5),)))])
