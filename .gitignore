@@ -5,6 +5,7 @@ parsetab.py
 tests/input
 tests/output
 tests/python_cmd
+tmp/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

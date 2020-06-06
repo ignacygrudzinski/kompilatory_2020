@@ -89,3 +89,6 @@ def evaluate(tokens, scope: Scope) -> Symbol:
     for (expr_type, expr) in tokens:
         results.append(evaluators[expr_type](expr))
     return results[-1]
+
+
+evaluate()

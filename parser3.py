@@ -48,8 +48,13 @@ def p_assign(p):
     '''assign : NAME ASSIGN expression'''
     p[0] = ('ASSIGN', (p[1], p[3]))
 
+def p_increment(p):
+    '''increment : NAME INCREMENT expression'''
+    p[0] = ('INCREMENT', (p[1], p[3]))
+
 def p_instruction_assign(p):
-    '''instruction : assign'''
+    '''instruction : assign
+                   | increment'''
     p[0] = [p[1]]
 
 def p_instruction_return(p):

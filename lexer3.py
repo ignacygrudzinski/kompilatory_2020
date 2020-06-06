@@ -24,7 +24,7 @@ tokens = list(reserved.values()) + [
     #ARITHMETIC
     'PLUS', 'MINUS', 'TIMES', 'DIV', 'MOD', 'POW',
     #COMPARISON
-    'EQ', 'NEQ', 'GT', 'LT', 'ASSIGN',
+    'EQ', 'NEQ', 'GT', 'LT', 'ASSIGN', 'INCREMENT',
     #PARENTHESES
     'OPAREN', 'CPAREN', 'OBLOCK', 'CBLOCK',
     #SEPARATORS
@@ -59,6 +59,7 @@ t_NEQ   = r'\!\='
 t_GT    = r'\>'
 t_LT    = r'\<'
 t_ASSIGN    = r'='
+t_INCREMENT = r'\+\='
 #PARENTHESES
 t_OPAREN    = r'\('
 t_CPAREN    = r'\)'
