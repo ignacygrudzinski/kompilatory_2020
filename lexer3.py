@@ -10,7 +10,7 @@ reserved = {
     'return': 'RETURN',
     'break': 'BREAK',
     'continue': 'CONTINUE',
-    #BOOLEAN VALUES
+    #BOOLEAN VALUES #TODO: add them to parser
     'true' : 'TRUE',
     'false' : 'FALSE',
     #TYPES
@@ -34,11 +34,6 @@ tokens = list(reserved.values()) + [
     #TYPES
     'INT', 'FLOAT', 'STRING', 'BOOL',
 ]
-
-def t_FUNCTION(t):
-    r'sin|cos'
-    t.value = (t.value, getattr(math, t.value))
-    return t
 
 def t_NAME(t):
     r'[a-zA-Z_][a-zA-Z0-9_]*'
