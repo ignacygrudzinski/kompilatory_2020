@@ -11,11 +11,13 @@ precedence = (
     ('right', 'POW'),
 )
 
+#for printing out, delete if not needed
 def p_wrapper(p):
     '''wrapper : instruction
                 | block'''
     print(p[1])
 
+#TODO: fix things unneccessarily split in 2
 
 def p_instructions(p):
     '''instruction : instruction SEMICOLON instruction'''
@@ -176,15 +178,15 @@ def mk_err(err):
 def make_parser():
     return (make_lexer(), yacc.yacc())
 
-# def parse(parser, inp):
-#     global errors
-#     errors = []
+def parse(parser, inp):
+    global errors
+    errors = []
 
-#     lex, parser = parser
-#     lex.input(inp)
+    lex, parser = parser
+    lex.input(inp)
 
-#     result = parser.parse(inp)
-#     return (errors, result)
+    result = parser.parse(inp)
+    return (errors, result)
 
 if __name__ == '__main__':
     parser = yacc.yacc()
