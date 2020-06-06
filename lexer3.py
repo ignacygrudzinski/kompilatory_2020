@@ -10,9 +10,6 @@ reserved = {
     'return': 'RETURN',
     'break': 'BREAK',
     'continue': 'CONTINUE',
-    #BOOLEAN VALUES #TODO: add them to parser
-    'true' : 'TRUE',
-    'false' : 'FALSE',
     #TYPES
     'int' : 'TYPE_SPEC',
     'float' : 'TYPE_SPEC',
@@ -34,6 +31,15 @@ tokens = list(reserved.values()) + [
     #TYPES
     'INT', 'FLOAT', 'STRING', 'BOOL',
 ]
+
+
+def t_BOOL(t):
+    r'true|false'
+    if t.value == 'true':
+        t.value = True
+    else:
+        t.value = False
+    return t
 
 def t_NAME(t):
     r'[a-zA-Z_][a-zA-Z0-9_]*'
@@ -79,6 +85,7 @@ def t_INT(t):
     r'\d+'
     t.value = int(t.value)
     return t
+
 
 t_ignore = " \t"
 

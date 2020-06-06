@@ -163,11 +163,11 @@ def p_expression_integer(p):
 
 def p_expression_FLOAT(p):
     '''expression : FLOAT'''
-    p[0] = ('FLOAT', float(p[1]))
+    p[0] = ('FLOAT', float(p[1]))    
 
 def p_expression_bool(p):
     '''expression : BOOL'''
-    p[0] = ('BOOL', bool(p[1]))
+    p[0] = ('BOOL', p[1])
 
 def p_expression_ref(p):
     "expression : NAME"
