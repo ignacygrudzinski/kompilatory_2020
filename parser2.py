@@ -41,7 +41,6 @@ def p_instruction_if(p):
     '''instruction : IF OPAREN expr CPAREN block '''
     p[0] = ['IF', (p[3], p[5], None)]
 
-#TODO: introduce condition thing because for doesn't work as is (unless 5 is a valid stop condition (it's not))
 #[FOR, (i_declaration, condition, assignment, block)]
 def p_instruction_for(p):
     '''instruction : FOR OPAREN full_dec SEMICOLON expr SEMICOLON assignment CPAREN block'''
@@ -108,83 +107,62 @@ def p_block(p):
     p[0] = p[2]
 
 
-# def p_expr_function(p):
-#     '''expr : FUNCTION OPAREN expr CPAREN'''
-#     p[0] = p[1][1](p[3])
+def p_expr_function(p):
+    '''expr : FUNCTION OPAREN expr CPAREN'''
+    p[0] = p[1][1](p[3])
 
-
-#[arg1, arg2, ...]                               #importante!
-def p_arglist_call(p):
-    '''arglist_call : expr COMMA arglist_call
-                    | expr'''
-    p[0] = [p[1]]
-    if len(p) == 4:
-        p[0] += p[3]
-
-# (CALL, (NAME, [arg2, arg2...]))                #importante!
-def p_expr_call(p):
-    '''expr : NAME OPAREN arglist_call CPAREN
-            | NAME OPAREN CPAREN'''
-    arg_list = p[3] if len(p) == 5 else []
-    p[0] = ('CALL', (p[1], arg_list))
-    
-#('BINOP, (operation, arg1, arg2))
 def p_expr_binop(p):
-    '''expr : expr binop expr'''
-    p[0] = ('BINOP', (p[2], p[1], p[3]))
-
-    #TODO move below to interpreter
+    '''expr : expr POW expr
+            | expr PLUS expr
+            | expr MINUS expr
+            | expr TIMES expr
+            | expr DIV expr
+            | expr EQ expr
+            | expr NEQ expr
+            | expr GT expr
+            | expr LT expr'''
     #TODO expand to boolean types
-    # if p[2] == '^':
-    #     p[0] = p[1]**p[3]
-    # elif p[2] == '+':
-    #     p[0] = p[1]+p[3]
-    # elif p[2] == '-':
-    #     p[0] = p[1]-p[3]    
-    # elif p[2] == '*':
-    #     p[0] = p[1]*p[3]
-    # elif p[2] == '/':
-    #     p[0] = p[1]/p[3]
-    # elif p[2] == '==':
-    #     p[0] = p[1] == p[3]
-    # elif p[2] == '!=':
-    #     p[0] = p[1] != p[3]
-    # elif p[2] == '<':
-    #     p[0] = p[1] < p[3]
-    # elif p[2] == '>':
-    #     p[0] = p[1] > p[3]
-
-def p_binop(p):
-    '''binop : POW
-             | PLUS
-             | MINUS
-             | TIMES
-             | DIV
-             | EQ
-             | NEQ
-             | GT
-             | LT'''
-    p[0] = p[1]
+    #TODO redefine everything to interpreter-digestible form (long list of stuff)
+    if p[2] == '^':
+        p[0] = p[1]**p[3]
+    elif p[2] == '+':
+        p[0] = p[1]+p[3]
+    elif p[2] == '-':
+        p[0] = p[1]-p[3]    
+    elif p[2] == '*':
+        p[0] = p[1]*p[3]
+    elif p[2] == '/':
+        p[0] = p[1]/p[3]
+    elif p[2] == '==':
+        p[0] = p[1] == p[3]
+    elif p[2] == '!=':
+        p[0] = p[1] != p[3]
+    elif p[2] == '<':
+        p[0] = p[1] < p[3]
+    elif p[2] == '>':
+        p[0] = p[1] > p[3]
 
 def p_expression_uminus(p):
     "expr : MINUS expr"
-    p[0] = ('UMINUS', p[2])
+    p[0] = -p[2]
 
 def p_expr_name(p):
     'expr : NAME'
-    p[0] = ('NAME', p[1])
+    p[0] = p[1]
 
 def p_expr_string(p):
     'expr : STRING'
-    p[0] = ('STRING', p[1])
+    p[0] = p[1]
 
-def p_expr_int(p):
-    'expr : INT'
-    p[0] = ('INT', p[1])
+def p_expr_number(p):
+    'expr : number'
+    p[0] = p[1]
 
-def p_expr_float(p):
-    'expr : FLOAT'
-    p[0] = ('FLOAT', p[1])
+def p_number(p):
+    '''number : INT
+              | FLOAT'''
+    p[0] = p[1]
+
 
 def p_error(p):
     if p:
