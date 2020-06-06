@@ -20,19 +20,31 @@ class Scope:
         else:
             self.names[name] = symbol
 
+    def update(self, name: str, symbol: Symbol):
+        if name not in self.names:
+            raise Exception(f"{name} is not defined")
+        else:
+            self.names[name] = symbol
+
+    def contains(self, name: str):
+        return name in self.names
+
+    def get(self, name: str):
+        return self.names[name]
+
 
 def type_check(symbol: Symbol, typ):
     if symbol.typ != typ:
         raise Exception(f"Expected {typ}, got {symbol.typ}")
 
 
-def evaluate(tokens, scope: Scope):
+def evaluate(tokens, scope: Scope) -> Symbol:
 
     ################################################
     # ################ evaluators ################ #
     ################################################
 
-    def eval_dec(expr: tuple):
+    def eval_dec(expr: tuple) -> Symbol:
         name, typ, assigned = expr
         assigned_symbol = None
         if assigned is not None:
@@ -42,10 +54,17 @@ def evaluate(tokens, scope: Scope):
         else:
             type_check(assigned_symbol, typ)
         scope.add(name, assigned_symbol)
+        return Symbol("none", None)
 
-    def eval_assign(expr: tuple):
+    def eval_assign(expr: tuple) -> Symbol:
         name, assigned = expr
-        assigned_symbol = evaluate(expr, scope)
+        assigned_symbol = evaluate(assigned, scope)
+        if not scope.contains(name):
+            raise Exception(f"{name} is not defined!")
+        assigned_to = scope.get(name)
+        type_check(assigned_symbol, assigned_to.typ)
+        scope.update(name, assigned_symbol)
+        return assigned_symbol
 
 
     evaluators = {
