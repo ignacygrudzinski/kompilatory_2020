@@ -33,13 +33,19 @@ class Scope:
         return self.names[name]
 
 
-def type_check(symbol: Symbol, typ):
+def type_assertion(symbol: Symbol, typ):
     if symbol.typ != typ:
         raise Exception(f"Expected {typ}, got {symbol.typ}")
 
-def number_check(symbol: Symbol):
+
+def number_assertion(symbol: Symbol):
     if symbol.typ not in ['int', 'float']:
         raise Exception(f"{Symbol.value} is not a number")
+
+
+def number_check(symbol: Symbol) -> bool:
+    return symbol.typ in ['int', 'float']
+
 
 def evaluate(tokens, scope: Scope) -> Symbol:
     ################################################
@@ -66,7 +72,7 @@ def evaluate(tokens, scope: Scope) -> Symbol:
         if assigned_symbol is None:
             assigned_symbol = Symbol(typ, None)
         else:
-            type_check(assigned_symbol, typ)
+            type_assertion(assigned_symbol, typ)
         scope.add(name, assigned_symbol)
         return Symbol("none", None)
 
@@ -76,7 +82,7 @@ def evaluate(tokens, scope: Scope) -> Symbol:
         if not scope.contains(name):
             raise Exception(f"{name} is not defined!")
         assigned_to = scope.get(name)
-        type_check(assigned_symbol, assigned_to.typ)
+        type_assertion(assigned_symbol, assigned_to.typ)
         scope.update(name, assigned_symbol)
         return assigned_symbol
 
@@ -87,10 +93,87 @@ def evaluate(tokens, scope: Scope) -> Symbol:
 
     def eval_uminus(expr) -> Symbol:
         symbol = evaluate(expr, scope)
-        number_check(symbol)
+        number_assertion(symbol)
         symbol.value = (-1 * symbol.value)
         return symbol
 
+    def binop_str(lhs, op, rhs):
+        if op == 'PLUS':
+            return Symbol('string', str(lhs.value) + str(rhs.value))
+        return None
+
+    def binop_num(lhs, op, rhs):
+        typ = 'int'
+        if lhs.typ == 'float' or rhs.typ == 'float':
+            typ = 'float'
+        lval = lhs.value
+        rval = rhs.value
+        if op == '+':
+            return Symbol(typ, lval + rval)
+        elif op == '-':
+            return Symbol(typ, lval - rval)
+        elif op == '*':
+            return Symbol(typ, lval * rval)
+        elif op == '/':
+            return Symbol('float', lval / rval)
+        elif op == '%':
+            return Symbol(typ, lval % rval)
+        elif op == '^':
+            return Symbol(typ, lval ** rval)
+
+    #
+    # def binop_bool(lhs_symbol, op, rhs_symbol):
+    #     if op == 'PLUS':
+    #         return Symbol('bool', str(lhs) + str(rhs))
+
+    def eval_binop(expr: tuple) -> Symbol:
+        lhs, op, rhs = expr
+        lhs_symbol = evaluate(lhs, scope)
+        rhs_symbol = evaluate(rhs, scope)
+        result = None
+        if lhs_symbol.typ == 'string' or rhs_symbol.typ == 'string':
+            result = binop_str(lhs_symbol, op, rhs_symbol)
+        elif number_check(lhs_symbol) or number_check(rhs_symbol):
+            result = binop_num(lhs_symbol, op, rhs_symbol)
+        # elif lhs_symbol.typ == 'bool' and rhs_symbol.typ == 'bool':
+        #      result = binop_str(lhs_symbol, op, rhs_symbol)
+
+        if result is None:
+            raise Exception(f"{op} not supported on arguments of types {lhs_symbol.typ}, {rhs_symbol.typ}")
+        return result
+
+    def eval_rel(expr: tuple) -> Symbol:
+        lhs, op, rhs = expr
+        lhs_symbol = evaluate(lhs, scope)
+        rhs_symbol = evaluate(rhs, scope)
+        result = None
+        if number_check(lhs_symbol) and number_check(rhs_symbol):
+            lval = lhs_symbol.value
+            rval = rhs_symbol.value
+            if op == '>':
+                result = lval > rval
+            elif op == '<':
+                result = lval < rval
+            elif op == '==':
+                result = lval == rval
+            elif op == '>=':
+                result = lval >= rval
+            elif op == '<=':
+                result = lval <= rval
+            elif op == '!=':
+                result = lval != rval
+        if result is None:
+            raise Exception(f"{op} not supported on arguments of types {lhs_symbol.typ}, {rhs_symbol.typ}")
+        return Symbol('bool', result)
+
+    def eval_call(expr: tuple):
+        name, exprlist = expr
+        if not scope.contains(name):
+            raise Exception(f"Function {name} is not defined")
+        symbol = scope.get(name)
+        func = symbol.value
+        exprlist = [evaluate(exp, scope) for exp in exprlist]
+        return func(scope, *exprlist)
 
 
     evaluators = {
@@ -102,9 +185,9 @@ def evaluate(tokens, scope: Scope) -> Symbol:
         "ASSIGN": eval_assign,
         "REF": eval_ref,
         "UMINUS": eval_uminus,
-        # "BINOP": eval_binop,
-        # "REL": eval_rel,
-        # "CALL": eval_call,
+        "BINOP": eval_binop,
+        "REL": eval_rel,
+        "CALL": eval_call,
         # "IF": eval_if,
         # "WHILE": eval_while,
         # "FOR": eval_for,
@@ -118,6 +201,8 @@ def evaluate(tokens, scope: Scope) -> Symbol:
 
 
 command = \
-[('DEC', ('i', 'int', ('UMINUS', ('INT', 5)))), ('REF', 'i')]
+[('REL', (('INT', 6), '>', ('INT', 5)))]
+#     [('BINOP', (('BINOP', (('INT', 2), '*', ('INT', 2))), '+', ('INT', 2)))]
+
 
 print(evaluate(command, Scope()).value)
