@@ -1,6 +1,6 @@
-from parser_tester import test
+from parser2_tester import test
 
-
+# lab 2
 
 test("3+7", "[10]")
 
@@ -37,6 +37,8 @@ test("{2+2; 6*6}", "[4, 36]")
 test("if(2>6){4+5}else{2+4}","['IF', (False, [9], [6])]")
 
 test("while(2<5){2*3}","['WHILE', (True, [6])]")
+
+# lab 3
 
 test("int a", "[('DEC', ('int', 'a'))]")
 

@@ -6,7 +6,7 @@ def p(name):
     return os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])),name)
 
 def run_from(name, input_file, output_file):
-    parser_path = os.path.join(str(pathlib.Path(__file__).parent.absolute()),'..','parser.py')
+    parser_path = os.path.join(str(pathlib.Path(__file__).parent.absolute()),'..','parser2.py')
     with open(p(name)) as python_cmd_file:
             python_cmd = python_cmd_file.read()
             cmd = python_cmd + " " + parser_path + " < "  + input_file + " > " + output_file
