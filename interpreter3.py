@@ -339,8 +339,25 @@ def evaluate(tokens, scope: Scope) -> Symbol:
     return results[-1]
 
 
+def make_def_scope():
+    scope = Scope()
+
+    math_builtins = ["sin", "cos", "exp", "sqrt", "log"]
+    for name in math_builtins:
+        def builtin(scope, *args, name=name):
+            if len(args) != 1:
+                raise Exception("Function '%s'. Expected 1 argument. Got %d args." % (name, len(args)))
+            symbol = args[0]
+            if not number_check(symbol):
+                raise Exception(f"Not a number{symbol.value}")
+            result = getattr(math, name)(symbol.value)
+            return Symbol('float', float(result))
+
+        scope.add(name, Symbol('func', builtin))
+        return scope
+
 def test(expected, command):
-    result = evaluate(command, Scope()).value
+    result = evaluate(command, make_def_scope()).value
     if result == expected:
         print('OK')
     else:
@@ -370,34 +387,28 @@ def test_raises(expected, command):
 
 # 5
 test(5, [('INT', 5)])
-
 # int i = -5; i
 test(-5, [('DEC', ('i', 'int', ('UMINUS', ('INT', 5)))), ('REF', 'i')])
-
-# int a = 1; a = 3; a;
-test(3, [('DEC', ('a', 'int', ('INT', 1))), ('ASSIGN', ('a', ('INT', 3))), ('REF', 'a')])
-
 # int a = 1; a += 3; a;
 test(4, [('DEC', ('a', 'int', ('INT', 1))), ('INCREMENT', ('a', ('INT', 3))), ('REF', 'a')])
 
+# 2.2.1 implementacja działań potęgowania, funkcji specjalnych, działań relacyjnych
+# 2 ^ 3
+test(8, [('BINOP', (('INT', 2), '^', ('INT', 3)))])
+# 2 > 1
+test(True, [('REL', (('INT', 2), '>', ('INT', 1)))])
+# sin(0)
+test(0, [('CALL', ('sin', (('INT', 0),)))])
+
+# 2.2.1 - zmiana znaku, 2.2.2 implementacja instrukcji oddzielonych średnikiem
 # int a = 5; a = -a; a
 test(-5, [('DEC', ('a', 'int', ('INT', 5))), ('ASSIGN', ('a', ('UMINUS', ('REF', 'a')))), ('REF', 'a')])
 
-# int a = trala
-test_raises('trala is not defined in current scope', [('DEC', ('a', 'int', ('REF', 'trala')))])
+# 2.2.3 kontynuacja parsowania kolejnych instrukcji w przypadku błędu
+# hhhh, int i = 5; i
+test(5, [('DEC', ('i', 'int', ('INT', 5))), ('REF', 'i')])
 
-# -a
-test_raises('a is not defined in current scope', [('UMINUS', ('REF', 'a'))])
-
-# int x(int g){return g^2};x(5)
-test(25, [('FUNC', ('int', 'x', [('int', 'g')], [('RETURN', ('BINOP', (('REF', 'g'), '^', ('INT', 2))))])),
-          ('CALL', ('x', (('INT', 5),)))])
-
-# int x(int g){return g^2};int y(int h){return x(h)};y(5)
-test(25, [('FUNC', ('int', 'x', [('int', 'g')], [('RETURN', ('BINOP', (('REF', 'g'), '^', ('INT', 2))))])),
-          ('FUNC', ('int', 'y', [('int', 'h')], [('RETURN', ('CALL', ('x', (('REF', 'h'),))))])),
-          ('CALL', ('y', (('INT', 5),)))])
-
+# 2.2.5 . instrukcje warunkowe i pętle
 # int x = 5; if(7>2){x=9};x
 test(9, [('DEC', ('x', 'int', ('INT', 5))),
          ('IF', (('REL', (('INT', 7), '>', ('INT', 2))), [('ASSIGN', ('x', ('INT', 9)))], None)), ('REF', 'x')])
@@ -410,6 +421,89 @@ test(5, [('DEC', ('i', 'int', ('INT', 10))), (
 
 # string s = ""; for(int i = 5; i < 10; i = i+1){s = s + "a"}; s;
 test('aaaaa', [('DEC', ('s', 'string', ('STRING', ''))), ('FOR', (
-('DEC', ('i', 'int', ('INT', 5))), ('REL', (('REF', 'i'), '<', ('INT', 10))),
-('ASSIGN', ('i', ('BINOP', (('REF', 'i'), '+', ('INT', 1))))),
-[('ASSIGN', ('s', ('BINOP', (('REF', 's'), '+', ('STRING', 'a')))))])), ('REF', 's')])
+    ('DEC', ('i', 'int', ('INT', 5))), ('REL', (('REF', 'i'), '<', ('INT', 10))),
+    ('ASSIGN', ('i', ('BINOP', (('REF', 'i'), '+', ('INT', 1))))),
+    [('ASSIGN', ('s', ('BINOP', (('REF', 's'), '+', ('STRING', 'a')))))])), ('REF', 's')])
+
+# LAB 3
+
+# 2.3.2
+# int i
+test(None, [('DEC', ('i', 'int', None))])
+# float f
+test(None, [('DEC', ('f', 'float', None))])
+# string s
+test(None, [('DEC', ('s', 'string', None))])
+# bool b
+test(None, [('DEC', ('b', 'bool', None))])
+# int h;  int h
+test_raises('h has already been defined', [('DEC', ('h', 'int', None)), ('DEC', ('h', 'int', None))])
+
+# 2.3.3 sprawdzanie typów
+# int i; i = "string"
+test_raises('Expected int, got string', [('DEC', ('i', 'int', None)), ('ASSIGN', ('i', ('STRING', 'string')))])
+# string a = "a"; string b = "b"; a-b
+test_raises('- not supported on arguments of types string, string',
+            [('DEC', ('a', 'string', ('STRING', 'a'))), ('DEC', ('b', 'string', ('STRING', 'b'))),
+             ('BINOP', (('REF', 'a'), '-', ('REF', 'b')))])
+
+# 2.3.4 instrukcja przypisania
+# int a = 1; a = 3; a;
+test(3, [('DEC', ('a', 'int', ('INT', 1))), ('ASSIGN', ('a', ('INT', 3))), ('REF', 'a')])
+# string s = "test"; s
+test('test', [('DEC', ('s', 'string', ('STRING', 'test'))), ('REF', 's')])
+# float f = 4.2; f
+test(4.2, [('DEC', ('f', 'float', ('FLOAT', 4.2))), ('REF', 'f')])
+# bool b; b = 2 < 6; b
+test(True, [('DEC', ('b', 'bool', None)), ('ASSIGN', ('b', ('REL', (('INT', 2), '<', ('INT', 6))))), ('REF', 'b')])
+
+# 2.3.5 przeciążanie operatorw
+# string a = "a"; string b = "b"; a+b
+test('ab', [('DEC', ('a', 'string', ('STRING', 'a'))), ('DEC', ('b', 'string', ('STRING', 'b'))),
+            ('BINOP', (('REF', 'a'), '+', ('REF', 'b')))])
+
+# 2.3.6 sprawdzanie syntaktyczne deklaracji zmiennych
+# int a = "pociąg"
+test_raises('Expected int, got string', [('DEC', ('a', 'int', ('STRING', 'pociąg')))])
+# 2.3.7 sprawdzanie syntaktyczne instrukcji
+# int a = trala
+test_raises('trala is not defined in current scope', [('DEC', ('a', 'int', ('REF', 'trala')))])
+
+# 2.4.1 definiowanie funkcij
+# int x(int g){return g^2};x(5)
+test(25, [('FUNC', ('int', 'x', [('int', 'g')], [('RETURN', ('BINOP', (('REF', 'g'), '^', ('INT', 2))))])),
+          ('CALL', ('x', (('INT', 5),)))])
+
+# 2.4.2 definiowanie blokw
+# { int a; a=5; a}
+test(5, [('DEC', ('a', 'int', None)), ('ASSIGN', ('a', ('INT', 5))), ('REF', 'a')])
+
+# 2.4.3 definiowanie zmiennych globalnych i lokalnych
+# string a = "global"; if (2>1) { a = "overwritten"}; a
+test("overwritten", [('DEC', ('a', 'string', ('STRING', 'global'))), (
+'IF', (('REL', (('INT', 2), '>', ('INT', 1))), [('ASSIGN', ('a', ('STRING', 'overwritten')))], None)), ('REF', 'a')])
+# string a = "global"; if (2>1) { b = "local"}; b
+test_raises('b is not defined!', [('DEC', ('a', 'string', ('STRING', 'global'))), (
+'IF', (('REL', (('INT', 2), '>', ('INT', 1))), [('ASSIGN', ('b', ('STRING', 'local')))], None)), ('REF', 'b')])
+
+# 2.4.4 instrukcja wywołania funkcji
+# int add(int a, int b){return a+b}; add(12, 5)
+test(17, [
+    ('FUNC', ('int', 'add', [('int', 'a'), ('int', 'b')], [('RETURN', ('BINOP', (('REF', 'a'), '+', ('REF', 'b'))))])),
+    ('CALL', ('add', (('INT', 12), ('INT', 5))))])
+
+# 2.4.5 automatyczna konwersja typów
+# string a = "a"; int b = 5; a+b
+test("a5", [('DEC', ('a', 'string', ('STRING', 'a'))), ('DEC', ('b', 'int', ('INT', 5))),
+            ('BINOP', (('REF', 'a'), '+', ('REF', 'b')))])
+
+# 2.5.1 Zagnieżdżone wywołania funkcji
+# int x(int g){return g^2};int y(int h){return x(h)};y(5)
+test(25, [('FUNC', ('int', 'x', [('int', 'g')], [('RETURN', ('BINOP', (('REF', 'g'), '^', ('INT', 2))))])),
+          ('FUNC', ('int', 'y', [('int', 'h')], [('RETURN', ('CALL', ('x', (('REF', 'h'),))))])),
+          ('CALL', ('y', (('INT', 5),)))])
+
+# -a
+test_raises('a is not defined in current scope', [('UMINUS', ('REF', 'a'))])
+
+
