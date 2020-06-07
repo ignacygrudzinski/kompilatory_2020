@@ -1,6 +1,9 @@
 import math
 import ply.yacc as yacc
 from lexer3 import *
+from interpreter3 import evaluate, make_def_scope
+
+scope = make_def_scope()
 
 precedence = (
     ('left', 'EQ', 'NEQ'),
@@ -11,11 +14,17 @@ precedence = (
     ('right', 'POW'),
 )
 
+# #for printing out, delete if not needed
+# def p_wrapper(p):
+#     '''wrapper : instruction
+#                 | block'''
+#     print(p[1])
+
 #for printing out, delete if not needed
-def p_wrapper(p):
+def p_repl_wrapper(p):
     '''wrapper : instruction
                 | block'''
-    print(p[1])
+    print(evaluate(p[1], scope).value)
 
 #TODO: fix things unneccessarily split in 2
 
@@ -203,3 +212,4 @@ if __name__ == '__main__':
         if not s:
             continue
         yacc.parse(s)
+
