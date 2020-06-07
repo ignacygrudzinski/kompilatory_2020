@@ -1,8 +1,5 @@
 import copy
 import math
-from typing import List
-
-from parser3 import parse, make_parser
 
 
 class Symbol:
@@ -55,7 +52,7 @@ def type_assertion(symbol: Symbol, typ):
 
 def number_assertion(symbol: Symbol):
     if symbol.typ not in ['int', 'float']:
-        raise Exception(f"{Symbol.value} is not a number")
+        raise Exception(f"{symbol.value} is not a number")
 
 
 def number_check(symbol: Symbol) -> bool:
