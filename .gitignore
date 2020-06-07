@@ -6,6 +6,7 @@ tests/input
 tests/output
 tests/python_cmd
 tmp/
+README.pdf
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
